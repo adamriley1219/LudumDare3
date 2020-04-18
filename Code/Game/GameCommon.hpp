@@ -3,6 +3,9 @@
 #include "Engine/Core/Vertex/Vertex_PCU.hpp"
 #include "Game/GameUtils.hpp"
 
+#include "Engine/Math/AABB2.hpp"
+#include "Engine/Math/Vec2.hpp"
+
 class RenderContext; // All may know about the renderer and the globe. You must include to use it.
 extern RenderContext* g_theRenderer;
 
@@ -40,6 +43,9 @@ constexpr float BOARDER_HEIGHT = 100.f;
 
 constexpr float BOARDER_HALF_WIDTH = BOARDER_WIDTH * 0.5f;
 constexpr float BOARDER_HALF_HEIGHT = BOARDER_HEIGHT * 0.5f;
+
+extern AABB2 UI_SCREEN;//( Vec2(), Vec2(BOARDER_WIDTH, BOARDER_HEIGHT) );
+
 
 constexpr const char* BACKGROUND_TEXTURE_PATH = "Data/Images/Terrain_8x8.png";
 

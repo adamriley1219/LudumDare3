@@ -52,8 +52,26 @@ void Game::Startup()
 	m_shader = g_theRenderer->CreateOrGetShaderFromXML( "Data/Shaders/shader.xml" );
 	g_theRenderer->m_shader = m_shader;
 
-	m_DevColsoleCamera.SetOrthographicProjection( Vec2( -100.0f, -50.0f ), Vec2( 100.0f,  50.0f ) );
+	m_DevColsoleCamera.SetOrthographicProjection( UI_SCREEN.m_bottomLeft, UI_SCREEN.m_topRight );
 	m_DevColsoleCamera.SetModelMatrix( Matrix44::IDENTITY );
+
+	AABB2 exitBounds = UI_SCREEN;
+	exitBounds.CarveBoxOffBottom( .95f );
+	exitBounds.CarveBoxOffLeft( .95f );
+	exitBounds.CarveBoxOffTop( .1f );
+	exitBounds.CarveBoxOffRight( .1f );
+
+	m_UICanvas.UpdateBounds( UI_SCREEN );
+
+	UIButton* exit = m_UICanvas.CreateChild<UIButton>();
+	exit->m_text				= "EXIT";
+	exit->m_eventOnClick		= "quit";
+	exit->m_nutralColor			= Rgba(.3f, .8f, .1f);
+	exit->m_hoveredBoarderColor = Rgba::RED;
+	exit->m_hoveredColor		= Rgba(.8f, .3f, .1f);
+	exit->m_nutralBoarderColor	= Rgba::BLACK;
+	exit->m_boarderThickness	= 8.0f;
+	exit->UpdateBounds( exitBounds );
 }
 
 //--------------------------------------------------------------------------
@@ -93,20 +111,13 @@ void Game::GameRender() const
 {
 	RenderBackground();
 
-	std::vector<Vertex_PCU> verts;
-	AddVertsForDisc2D(verts, m_curentCamera.m_screen_offset, 2, Rgba::RED);
-	g_theRenderer->BindTextureView(TEXTURE_SLOT_ALBEDO, nullptr);
-	g_theRenderer->DrawVertexArray(verts);
+	g_theDebugRenderSystem->RenderToCamera( &m_controller.m_camera );
 
-	verts.clear();
-	BitmapFont* font = g_theRenderer->CreateOrGetBitmapFromFile( "SquirrelPix_MedBoldProp9_16x16", true );
-	font->AddVertsFor2DText( verts, m_curentCamera.m_screen_offset, 4, Stringf( "Pos: %.02f, %.02f", m_curentCamera.m_screen_offset.x, m_curentCamera.m_screen_offset.y ).c_str() );
-
-	g_theRenderer->BindTextureView( 0, font->GetTextureView() );
-	g_theRenderer->SetBlendMode( eBlendMode::BLEND_MODE_ALPHA );
-	g_theRenderer->DrawVertexArray(verts);
-	
-	g_theDebugRenderSystem->RenderToCamera( &m_curentCamera );
+	m_DevColsoleCamera.SetColorTargetView( g_theRenderer->GetColorTargetView() );
+	m_DevColsoleCamera.SetDepthTargetView( g_theRenderer->GetDepthTargetView() );
+	g_theRenderer->BeginCamera( &m_DevColsoleCamera );
+	g_theRenderer->SetBlendMode( BLEND_MODE_ALPHA );
+	m_UICanvas.Render();
 }
 
 //--------------------------------------------------------------------------
@@ -117,6 +128,9 @@ void Game::UpdateGame( float deltaSeconds )
 {
 	m_controller.Update( deltaSeconds );
 	
+	UpdateUI();
+
+
 	UpdateCamera( deltaSeconds );
 }
 
@@ -131,10 +145,29 @@ void Game::UpdateCamera( float deltaSeconds )
 	Vec2 movement		= m_controller.GetFramePan() * deltaSeconds;
 	float zoom_amount	= m_controller.GetFrameZoomDir() * m_controller.m_zoomSpeed * deltaSeconds;
 
-	m_curentCamera.AddZoom( zoom_amount );
-	m_curentCamera.AddToOffset( movement );
-	m_curentCamera.Update( deltaSeconds );
-	m_curentCamera.BindCamera( g_theRenderer );
+	m_controller.m_camera.AddZoom( zoom_amount );
+	m_controller.m_camera.AddToOffset( movement );
+	m_controller.m_camera.Update( deltaSeconds );
+	m_controller.m_camera.BindCamera( g_theRenderer );
+}
+
+//--------------------------------------------------------------------------
+/**
+* UpdateUI
+*/
+void Game::UpdateUI()
+{
+	Vec2 mousePos = m_controller.GetUIMousePos();
+	if( g_theInputSystem->KeyWasPressed( MOUSE_L ) )
+	{
+		Event event(Stringf("click x=%f y=%f", mousePos.x, mousePos.y));
+		m_UICanvas.ProcessInput(event);
+	}
+	else
+	{
+		Event event(Stringf("hover x=%f y=%f", mousePos.x, mousePos.y));
+		m_UICanvas.ProcessInput(event);
+	}
 }
 
 //--------------------------------------------------------------------------
@@ -143,8 +176,8 @@ void Game::UpdateCamera( float deltaSeconds )
 */
 void Game::RenderBackground() const
 {
-	float client_pos_int_x = (float)m_curentCamera.m_screen_offset.x - BOARDER_HALF_WIDTH;
-	float client_pos_int_y = (float)m_curentCamera.m_screen_offset.y - BOARDER_HALF_HEIGHT;
+	float client_pos_int_x = (float)m_controller.m_camera.m_screen_offset.x - BOARDER_HALF_WIDTH;
+	float client_pos_int_y = (float)m_controller.m_camera.m_screen_offset.y - BOARDER_HALF_HEIGHT;
 
 	bool neg_x = client_pos_int_x < 0.0f;
 	bool neg_y = client_pos_int_y < 0.0f;

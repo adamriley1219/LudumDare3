@@ -28,8 +28,8 @@ SpaceCamera::~SpaceCamera()
 void SpaceCamera::Update( float deltaSeconds )
 {
 	UNUSED( deltaSeconds );
-	Vec2 min = m_screen_dims.m_bottomLeft * m_zoom; 
-	Vec2 max = m_screen_dims.m_topRight * m_zoom;
+	Vec2 min = m_screen_boarder.m_bottomLeft * m_zoom; 
+	Vec2 max = m_screen_boarder.m_topRight * m_zoom;
 		
 	max += m_screen_offset;
 	min += m_screen_offset;

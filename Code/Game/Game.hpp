@@ -3,6 +3,7 @@
 
 #include "Game/SpaceCamera.hpp"
 #include "Game/GameController.hpp"
+#include "Game/UIWidget.hpp"
 
 class Shader;
 
@@ -25,6 +26,7 @@ public:
 
 private:
 	void UpdateCamera( float deltaSeconds );
+	void UpdateUI();
 	void RenderBackground() const;
 
 private:
@@ -32,10 +34,12 @@ private:
 
 	Shader* m_shader;
 
-	mutable SpaceCamera m_curentCamera;
 	mutable Camera m_DevColsoleCamera;
 
 	GameController m_controller;
+
+	UICanvas m_worldCanvas;
+	UICanvas m_UICanvas;
 
 	float m_slider = 50.f;
 
