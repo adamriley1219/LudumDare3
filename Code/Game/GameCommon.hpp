@@ -35,9 +35,11 @@ extern bool g_isInDebug;
 //--------------------------------------------------------------------------
 // Constant global variables.
 //--------------------------------------------------------------------------
-constexpr float WORLD_WIDTH = 200.f;
-constexpr float WORLD_HEIGHT = 100.f;
-constexpr float WORLD_CENTER_X = WORLD_WIDTH / 2.f;
-constexpr float WORLD_CENTER_Y = WORLD_HEIGHT / 2.f;
+constexpr float BOARDER_WIDTH = 200.f;
+constexpr float BOARDER_HEIGHT = 100.f;
 
+constexpr float BOARDER_HALF_WIDTH = BOARDER_WIDTH * 0.5f;
+constexpr float BOARDER_HALF_HEIGHT = BOARDER_HEIGHT * 0.5f;
+
+constexpr const char* BACKGROUND_TEXTURE_PATH = "Data/Images/Terrain_8x8.png";
 
