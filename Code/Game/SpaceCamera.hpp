@@ -27,7 +27,7 @@ public:
 	void BindCamera( RenderContext* context );
 
 public:
-	AABB2 m_screen_boarder			= AABB2( -200.0f, -100.0f, 200.0f, 100.0f );
+	AABB2 m_screen_boarder			= AABB2( -50.0f, -25.0f, 50.0f, 25.0f );
 	Vec2 m_screen_offset			= Vec2( 0.0f, 0.0f ); 
 	float m_zoom					= 1.0f;
 

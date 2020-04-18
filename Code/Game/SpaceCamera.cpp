@@ -52,7 +52,7 @@ void SpaceCamera::SetOffset( Vec2 const &pos )
 */
 void SpaceCamera::AddToOffset( Vec2 const& offset )
 {
-	float dependent_zoom_var = m_zoom * 3.0f;
+	float dependent_zoom_var = m_zoom * 1.0f;
 	m_screen_offset += offset * dependent_zoom_var;
 }
 

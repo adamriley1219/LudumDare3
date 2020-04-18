@@ -83,8 +83,8 @@ Vec2 GameController::GetUIMousePos() const
 {
 	AABB2 clientScreen = g_theWindowContext->GetClientScreen();
 
-	float ui_x = RangeMapFloat( m_mousePos.x, 0, clientScreen.GetWidth(), 0, UI_SCREEN.GetWidth() );
-	float ui_y = RangeMapFloat( m_mousePos.y, fabsf(clientScreen.GetHeight()), 0, 0, UI_SCREEN.GetHeight() );
+	float ui_x = RangeMapFloat( (float)m_mousePos.x, 0, clientScreen.GetWidth(), 0, UI_SCREEN.GetWidth() );
+	float ui_y = RangeMapFloat( (float)m_mousePos.y, fabsf(clientScreen.GetHeight()), 0, 0, UI_SCREEN.GetHeight() );
 
 	return Vec2( ui_x, ui_y );
 }
@@ -101,8 +101,8 @@ Vec2 GameController::GetGameMousePos() const
 	AABB2 gameScreen = m_camera.m_screen_boarder;
 	gameScreen.AddPosition( offset );
 
-	float ui_x = RangeMapFloat( m_mousePos.x, 0, clientScreen.GetWidth(), gameScreen.m_bottomLeft.x, gameScreen.m_topRight.x );
-	float ui_y = RangeMapFloat( m_mousePos.y, clientScreen.GetHeight(), 0, gameScreen.m_bottomLeft.y, gameScreen.m_topRight.y );
+	float ui_x = RangeMapFloat( (float)m_mousePos.x, 0, clientScreen.GetWidth(), gameScreen.m_bottomLeft.x, gameScreen.m_topRight.x );
+	float ui_y = RangeMapFloat( (float)m_mousePos.y, clientScreen.GetHeight(), 0, gameScreen.m_bottomLeft.y, gameScreen.m_topRight.y );
 
 	return Vec2( ui_x, ui_y );
 }

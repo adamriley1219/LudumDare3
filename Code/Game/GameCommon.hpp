@@ -46,6 +46,7 @@ constexpr float BOARDER_HALF_HEIGHT = BOARDER_HEIGHT * 0.5f;
 
 extern AABB2 UI_SCREEN;//( Vec2(), Vec2(BOARDER_WIDTH, BOARDER_HEIGHT) );
 
+constexpr const char* BACKGROUND_TEXTURE_PATH	= "Data/Images/Terrain_8x8.png";
+constexpr const char* PLANET_TEXTURE_PATH		= "Data/Images/Explosion_5x5.png";
 
-constexpr const char* BACKGROUND_TEXTURE_PATH = "Data/Images/Terrain_8x8.png";
-
+constexpr int NUM_ALLOWED_CHILDREN = 2;

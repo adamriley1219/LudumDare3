@@ -22,6 +22,7 @@
 #include "Game/Game.hpp"
 #include "Game/GameCommon.hpp"
 #include "Game/App.hpp"
+#include "Game/InhabitablePlanet.hpp"
 #include <vector>
 
 #include <Math.h>
@@ -67,11 +68,20 @@ void Game::Startup()
 	exit->m_text				= "EXIT";
 	exit->m_eventOnClick		= "quit";
 	exit->m_nutralColor			= Rgba(.3f, .8f, .1f);
+	exit->m_nutralBoarderColor	= Rgba::BLACK;
 	exit->m_hoveredBoarderColor = Rgba::RED;
 	exit->m_hoveredColor		= Rgba(.8f, .3f, .1f);
-	exit->m_nutralBoarderColor	= Rgba::BLACK;
-	exit->m_boarderThickness	= 8.0f;
+	exit->m_boarderThickness	= 5.0f;
+	exit->m_boarderScaleWithParent = false;
 	exit->UpdateBounds( exitBounds );
+
+	TextureView* planet_texture = (TextureView*) g_theRenderer->CreateOrGetTextureViewFromFile( PLANET_TEXTURE_PATH, true );
+	m_planet_sheet = new SpriteSheet( planet_texture, IntVec2( 5,5 ) );
+	
+	m_root_planet = new InhabitablePlanet();
+	m_root_planet->m_pos = Vec2::ZERO;
+	m_root_planet->sheet_idx = 7;
+	m_root_planet->m_planet_sheet = m_planet_sheet;
 }
 
 //--------------------------------------------------------------------------
@@ -111,6 +121,8 @@ void Game::GameRender() const
 {
 	RenderBackground();
 
+	RenderPlanets();
+
 	g_theDebugRenderSystem->RenderToCamera( &m_controller.m_camera );
 
 	m_DevColsoleCamera.SetColorTargetView( g_theRenderer->GetColorTargetView() );
@@ -130,6 +142,7 @@ void Game::UpdateGame( float deltaSeconds )
 	
 	UpdateUI();
 
+	m_root_planet->Update( deltaSeconds );
 
 	UpdateCamera( deltaSeconds );
 }
@@ -258,4 +271,21 @@ void Game::RenderBackground() const
 	g_theRenderer->BindShader(m_shader);
 	g_theRenderer->BindTextureViewWithSampler(eTextureSlot::TEXTURE_SLOT_ALBEDO, background_texture, eSampleMode::SAMPLE_MODE_POINT);
 	g_theRenderer->DrawVertexArray(verts);
+}
+
+//--------------------------------------------------------------------------
+/**
+* RenderPlanets
+*/
+void Game::RenderPlanets() const
+{
+	std::vector<Vertex_PCU> verts;
+
+	m_root_planet->AddVertsForRender( verts );
+
+	if( !verts.empty() )
+	{
+		g_theRenderer->BindTextureView( 0, PLANET_TEXTURE_PATH );
+		g_theRenderer->DrawVertexArray( verts );
+	}
 }
