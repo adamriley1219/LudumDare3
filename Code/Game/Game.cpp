@@ -91,29 +91,21 @@ bool Game::HandleKeyReleased( unsigned char keyCode )
 */
 void Game::GameRender() const
 {
-	int client_pos_int_x = (int) m_curentCamera.m_screen_offset.x; 
-	int client_pos_int_y = (int) m_curentCamera.m_screen_offset.y;
-
-	int clent_amount_into_boarder_x = client_pos_int_x % (int) BOARDER_WIDTH;
-	int clent_amount_into_boarder_y = client_pos_int_y % (int) BOARDER_HALF_HEIGHT;
+	RenderBackground();
 
 	std::vector<Vertex_PCU> verts;
-	Vec2 client_offset_into_cur_background( (float)clent_amount_into_boarder_x, (float)clent_amount_into_boarder_y );
+	AddVertsForDisc2D(verts, m_curentCamera.m_screen_offset, 2, Rgba::RED);
+	g_theRenderer->BindTextureView(TEXTURE_SLOT_ALBEDO, nullptr);
+	g_theRenderer->DrawVertexArray(verts);
 
-	Vec2 botLeft( -BOARDER_HALF_WIDTH, -BOARDER_HALF_HEIGHT );
-	Vec2 topRight( BOARDER_HALF_WIDTH, BOARDER_HALF_HEIGHT );
+	verts.clear();
+	BitmapFont* font = g_theRenderer->CreateOrGetBitmapFromFile( "SquirrelPix_MedBoldProp9_16x16", true );
+	font->AddVertsFor2DText( verts, m_curentCamera.m_screen_offset, 4, Stringf( "Pos: %.02f, %.02f", m_curentCamera.m_screen_offset.x, m_curentCamera.m_screen_offset.y ).c_str() );
 
-	AABB2 world_backgroud( botLeft, topRight );
-	AddVertsForAABB2D( verts, world_backgroud, Rgba::WHITE );
-	world_backgroud.AddPosition( client_offset_into_cur_background );
-
-	static TextureView* background_texture = (TextureView*) g_theRenderer->CreateOrGetTextureViewFromFile( BACKGROUND_TEXTURE_PATH, true );
+	g_theRenderer->BindTextureView( 0, font->GetTextureView() );
+	g_theRenderer->SetBlendMode( eBlendMode::BLEND_MODE_ALPHA );
+	g_theRenderer->DrawVertexArray(verts);
 	
-	AddVertsForAABB2D( verts, world_backgroud, Rgba::WHITE );
-	g_theRenderer->BindShader( m_shader );
-	g_theRenderer->BindTextureViewWithSampler( eTextureSlot::TEXTURE_SLOT_ALBEDO, background_texture, eSampleMode::SAMPLE_MODE_POINT );
-	g_theRenderer->DrawVertexArray( verts );
-
 	g_theDebugRenderSystem->RenderToCamera( &m_curentCamera );
 }
 
@@ -143,4 +135,94 @@ void Game::UpdateCamera( float deltaSeconds )
 	m_curentCamera.AddToOffset( movement );
 	m_curentCamera.Update( deltaSeconds );
 	m_curentCamera.BindCamera( g_theRenderer );
+}
+
+//--------------------------------------------------------------------------
+/**
+* RenderBackground
+*/
+void Game::RenderBackground() const
+{
+	float client_pos_int_x = (float)m_curentCamera.m_screen_offset.x - BOARDER_HALF_WIDTH;
+	float client_pos_int_y = (float)m_curentCamera.m_screen_offset.y - BOARDER_HALF_HEIGHT;
+
+	bool neg_x = client_pos_int_x < 0.0f;
+	bool neg_y = client_pos_int_y < 0.0f;
+
+	float client_amount_into_boarder_x = fabsf(client_pos_int_x);
+	int offset_x = 0;
+	while (client_amount_into_boarder_x > BOARDER_WIDTH)
+	{
+		client_amount_into_boarder_x -= BOARDER_WIDTH;
+		++offset_x;
+	}
+
+	float client_amount_into_boarder_y = fabsf(client_pos_int_y);
+	int offset_y = 0;
+	while (client_amount_into_boarder_y > BOARDER_HEIGHT)
+	{
+		client_amount_into_boarder_y -= BOARDER_HEIGHT;
+		++offset_y;
+	}
+
+
+	if( neg_x )
+	{
+		offset_x *= -1;
+	}
+	else
+	{
+		++offset_x;
+	}
+
+	if( neg_y )
+	{
+		offset_y *= -1;
+	}
+	else
+	{
+		++offset_y;
+	}
+
+	float boarder_stride_width		= BOARDER_WIDTH * offset_x;
+	float boarder_stride_height		= BOARDER_HEIGHT * offset_y;
+
+	Vec2 botLeft( -BOARDER_HALF_WIDTH, -BOARDER_HALF_HEIGHT );
+	Vec2 topRight( BOARDER_HALF_WIDTH, BOARDER_HALF_HEIGHT );
+
+	AABB2 world_background( botLeft, topRight );
+
+	Vec2 offset( boarder_stride_width, boarder_stride_height );
+
+	world_background.AddPosition( offset );
+	AABB2 topLeftBrd = world_background.GetOffset(	Vec2( -BOARDER_WIDTH, BOARDER_HEIGHT )	);
+	AABB2 leftBrd = world_background.GetOffset(		Vec2( -BOARDER_WIDTH, 0 )				);
+	AABB2 botLeftBrd = world_background.GetOffset(	Vec2( -BOARDER_WIDTH, -BOARDER_HEIGHT )	);
+
+	AABB2 topBrd = world_background.GetOffset(		Vec2( 0, BOARDER_HEIGHT )	);
+	AABB2 botBrd = world_background.GetOffset(		Vec2( 0, -BOARDER_HEIGHT )	);
+
+	AABB2 topRightBrd = world_background.GetOffset(	Vec2( BOARDER_WIDTH, BOARDER_HEIGHT )	);
+	AABB2 rightBrd = world_background.GetOffset(	Vec2( BOARDER_WIDTH, 0 )				);
+	AABB2 botRightBrd = world_background.GetOffset(	Vec2( BOARDER_WIDTH, -BOARDER_HEIGHT )	);
+
+	std::vector<Vertex_PCU> verts;
+	AddVertsForAABB2D( verts, world_background, Rgba::WHITE );
+
+	AddVertsForAABB2D( verts, topLeftBrd, Rgba::WHITE );
+	AddVertsForAABB2D( verts, leftBrd, Rgba::WHITE );
+	AddVertsForAABB2D( verts, botLeftBrd, Rgba::WHITE );
+
+	AddVertsForAABB2D( verts, topBrd, Rgba::WHITE );
+	AddVertsForAABB2D( verts, botBrd, Rgba::WHITE );
+
+	AddVertsForAABB2D( verts, topRightBrd, Rgba::WHITE );
+	AddVertsForAABB2D( verts, rightBrd, Rgba::WHITE );
+	AddVertsForAABB2D( verts, botRightBrd, Rgba::WHITE );
+
+	static TextureView* background_texture = (TextureView*)g_theRenderer->CreateOrGetTextureViewFromFile(BACKGROUND_TEXTURE_PATH, true);
+
+	g_theRenderer->BindShader(m_shader);
+	g_theRenderer->BindTextureViewWithSampler(eTextureSlot::TEXTURE_SLOT_ALBEDO, background_texture, eSampleMode::SAMPLE_MODE_POINT);
+	g_theRenderer->DrawVertexArray(verts);
 }

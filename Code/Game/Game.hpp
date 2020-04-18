@@ -25,7 +25,7 @@ public:
 
 private:
 	void UpdateCamera( float deltaSeconds );
-
+	void RenderBackground() const;
 
 private:
 	bool m_isQuitting = false;
