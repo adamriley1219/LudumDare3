@@ -401,7 +401,6 @@ void Sun::AddVertsForInfoText( std::vector<Vertex_PCU>& verts ) const
 	
 	box.AddPosition(m_pos);
 
-
 	box.AddPosition(0.0f, -box.GetHeight());
 	box.m_bottomLeft.y -= 500.0f;
 

@@ -133,7 +133,7 @@ void Game::Startup()
 	{
 		Sun sun;
 		sun.m_pos = Vec2(g_theRNG->GetRandomFloatInRange(-GAME_HALF_WIDTH, GAME_HALF_WIDTH), g_theRNG->GetRandomFloatInRange(-GAME_HALF_HEIGHT, GAME_HALF_HEIGHT));
-		sun.m_radius = 25.0f;
+		sun.influence_radius = 25.0f;
 		sun.sheet_idx  = 23;
 		m_suns.push_back( sun );
 	}
@@ -402,7 +402,7 @@ void Game::RenterTradeRoutes() const
 
 	if( !verts.empty() )
 	{
-		g_theRenderer->BindTextureView( 0, ROUTE_TEXTURE_PATH );
+		g_theRenderer->BindTextureView( TEXTURE_SLOT_ALBEDO, ROUTE_TEXTURE_PATH );
 		g_theRenderer->DrawVertexArray( verts );
 	}
 }
