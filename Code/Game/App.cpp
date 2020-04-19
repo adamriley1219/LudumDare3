@@ -120,9 +120,10 @@ void App::RunFrame()
 		m_gameClock->Dilate(1.0f);
 	}
 
-
+	float delta_time = (float)m_gameClock->GetFrameTime();
+	delta_time = Clamp( delta_time, 0.0f, 0.5f );
 	BeginFrame();
-	Update((float)m_gameClock->GetFrameTime());
+	Update( delta_time );
 	Render();
 	EndFrame();
 	ProfilerEndFrame();

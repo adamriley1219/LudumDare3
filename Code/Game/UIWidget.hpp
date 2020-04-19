@@ -1,6 +1,7 @@
 #pragma once
 #include "Engine/Core/EventSystem.hpp"
 #include "Engine/Core/Graphics/Rgba.hpp"
+#include "Game/GameCommon.hpp"
 #include <string>
 
 //--------------------------------------------------------------------------
@@ -103,7 +104,7 @@ public:
 	Rgba m_color = Rgba::WHITE;
 	std::string m_text = "";
 
-	std::string m_font = "SquirrelFixedFont";
+	std::string m_font = FONT;
 
 }; 
 
@@ -142,7 +143,7 @@ public:
 
 	bool m_useText = true;
 	std::string m_text = "";
-	std::string m_font = "SquirrelFixedFont";
+	std::string m_font = FONT;
 
 	std::string m_texturePath = "";
 

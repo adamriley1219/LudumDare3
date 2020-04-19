@@ -79,9 +79,15 @@ void Game::Startup()
 	m_planet_sheet = new SpriteSheet( planet_texture, IntVec2( 5,5 ) );
 	
 	m_root_planet = new InhabitablePlanet();
-	m_root_planet->m_pos = Vec2::ZERO;
+	m_root_planet->m_pos = Vec2( 18.0f, -5.0f );
 	m_root_planet->sheet_idx = 7;
 	m_root_planet->m_planet_sheet = m_planet_sheet;
+
+	m_root_sun = new Sun();
+	m_root_sun->m_pos = Vec2( -15.0f, 7.0f );
+	m_root_sun->sheet_idx = 23;
+	
+
 }
 
 //--------------------------------------------------------------------------
@@ -143,6 +149,7 @@ void Game::UpdateGame( float deltaSeconds )
 	UpdateUI();
 
 	m_root_planet->Update( deltaSeconds );
+	m_root_sun->Update( deltaSeconds );
 
 	UpdateCamera( deltaSeconds );
 }
@@ -280,12 +287,23 @@ void Game::RenderBackground() const
 void Game::RenderPlanets() const
 {
 	std::vector<Vertex_PCU> verts;
+	std::vector<Vertex_PCU> text_verts;
 
 	m_root_planet->AddVertsForRender( verts );
+	m_root_planet->AddVertsForInfoText( text_verts );
+
+	m_root_sun->AddVertsForRender( verts );
+	m_root_sun->AddVertsForInfoText( text_verts );
 
 	if( !verts.empty() )
 	{
 		g_theRenderer->BindTextureView( 0, PLANET_TEXTURE_PATH );
 		g_theRenderer->DrawVertexArray( verts );
+	}
+
+	if( !text_verts.empty() )
+	{
+		g_theRenderer->BindTextureView( 0, g_theRenderer->CreateOrGetBitmapFromFile( FONT )->GetTextureView() );
+		g_theRenderer->DrawVertexArray( text_verts );
 	}
 }

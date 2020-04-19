@@ -8,6 +8,7 @@
 
 class Shader;
 class InhabitablePlanet;
+class Sun;
 class SpriteSheet;
 
 class Game
@@ -45,7 +46,8 @@ public:
 
 	UICanvas m_UICanvas;
 
-	InhabitablePlanet* m_root_planet = nullptr;
+	InhabitablePlanet*	m_root_planet	= nullptr;
+	Sun*				m_root_sun		= nullptr;
 
 	float m_slider = 50.f;
 

@@ -99,10 +99,11 @@ Vec2 GameController::GetGameMousePos() const
 
 	Vec2& offset = m_camera.m_screen_offset;
 	AABB2 gameScreen = m_camera.m_screen_boarder;
+	gameScreen.ScaleUniform( m_camera.m_zoom );
 	gameScreen.AddPosition( offset );
 
 	float ui_x = RangeMapFloat( (float)m_mousePos.x, 0, clientScreen.GetWidth(), gameScreen.m_bottomLeft.x, gameScreen.m_topRight.x );
-	float ui_y = RangeMapFloat( (float)m_mousePos.y, clientScreen.GetHeight(), 0, gameScreen.m_bottomLeft.y, gameScreen.m_topRight.y );
+	float ui_y = RangeMapFloat( (float)m_mousePos.y, fabsf(clientScreen.GetHeight()), 0, gameScreen.m_bottomLeft.y, gameScreen.m_topRight.y );
 
 	return Vec2( ui_x, ui_y );
 }

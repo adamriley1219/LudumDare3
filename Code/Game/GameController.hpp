@@ -24,7 +24,6 @@ public:
 	float m_panSpeed					= 32.0f; 
 
 	float m_zoomSpeed					= 24.0f; 
-	float m_curZoom						= 0.0f;
 	float m_zoomDirThisFrame			= 0.0f;
 
 	mutable SpaceCamera m_camera;

@@ -9,17 +9,19 @@ class SpriteSheet;
 class CelesticalObject
 {
 public:
-	CelesticalObject() {};
+	CelesticalObject();
 	virtual ~CelesticalObject() {};
 
 	virtual void Update( float deltaTime );
 	virtual void AddVertsForRender( std::vector<Vertex_PCU>& verts ) const;
+	virtual void AddVertsForInfoText( std::vector<Vertex_PCU>& verts ) const = 0;
 
 public:
 	Vec2 m_pos					= Vec2::ZERO;
 	float m_radius				= 10.0f;
 	Rgba m_tint					= Rgba::WHITE;
 	bool m_hover				= false;
+	std::string	m_name			= "UNNAMED";
 
 public:
 	int sheet_idx				= 0;
@@ -35,6 +37,7 @@ public:
 
 	virtual void Update( float deltaTime );
 	virtual void AddVertsForRender( std::vector<Vertex_PCU>& verts ) const;
+	virtual void AddVertsForInfoText( std::vector<Vertex_PCU>& verts ) const;
 	 
 public:
 	int GetTotalPopulation() const; 
@@ -57,8 +60,10 @@ public:
 class Sun : public CelesticalObject
 {
 public:
-	Sun() {};
+	Sun() : CelesticalObject() {};
 	virtual ~Sun() {};
+
+	virtual void AddVertsForInfoText( std::vector<Vertex_PCU>& verts ) const;
 
 public:
 
