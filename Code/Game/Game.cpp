@@ -63,16 +63,15 @@ void Game::Startup()
 	m_DevColsoleCamera.SetModelMatrix( Matrix44::IDENTITY );
 
 	AABB2 exitBounds = UI_SCREEN;
+	AABB2 statsBounds = UI_SCREEN;
+
 	exitBounds.CarveBoxOffBottom( .95f );
 	exitBounds.CarveBoxOffLeft( .95f );
 	exitBounds.CarveBoxOffTop( .1f );
 	exitBounds.CarveBoxOffRight( .1f );
 
-	AABB2 statsBounds = UI_SCREEN;
-	statsBounds.CarveBoxOffBottom( .80f );
-	statsBounds.CarveBoxOffRight( .90f );
-	statsBounds.CarveBoxOffLeft( .1f );
-	statsBounds.CarveBoxOffTop( .1f );
+	statsBounds.CarveBoxOffLeft( .01f );
+	statsBounds.CarveBoxOffTop( .01f );
 
 	m_UICanvas.UpdateBounds( UI_SCREEN );
 
@@ -88,31 +87,40 @@ void Game::Startup()
 	exit->UpdateBounds( exitBounds );
 
 	Rgba stats_color(1.0f, 0.7f, 0.1f);
-	float label_height = 2.0f;
+	float label_height = 2.5f;
 
 	m_cycles_label = m_UICanvas.CreateChild<UILabel>();
 	m_cycles_label->m_text = "Temp text";
 	m_cycles_label->m_color = stats_color;
+	m_cycles_label->m_pivot = Vec2::ALIGN_CENTER_LEFT;
+	m_cycles_label->m_virtualPosition = Vec4::ZERO;
+	m_cycles_label->m_virtualSize = Vec4( 0.0f, 1.0f, 50.0f, 0.0f );
 	m_cycles_label->UpdateBounds( statsBounds.CarveBoxOffTop( 0, label_height ) );
 
 	m_totpop_label = m_UICanvas.CreateChild<UILabel>();
 	m_totpop_label->m_text = "Temp text";
 	m_totpop_label->m_color = stats_color;
+	m_totpop_label->m_pivot = Vec2::ALIGN_CENTER_LEFT;
+	m_totpop_label->m_virtualPosition = Vec4::ZERO;
+	m_totpop_label->m_virtualSize = Vec4( 0.0f, 1.0f, 50.0f, 0.0f );
 	m_totpop_label->UpdateBounds( statsBounds.CarveBoxOffTop( 0, label_height ) );
 
 	UILabel* ctrl_label = m_UICanvas.CreateChild<UILabel>();
 	ctrl_label->m_text = "Hold CTRL to hover all";
+	ctrl_label->m_pivot = Vec2::ALIGN_CENTER_LEFT;
+	ctrl_label->m_virtualPosition = Vec4::ZERO;
+	ctrl_label->m_virtualSize = Vec4( 0.0f, 1.0f, 50.0f, 0.0f );
 	ctrl_label->UpdateBounds( statsBounds.CarveBoxOffTop( 0, label_height ) );
 
 	TextureView* planet_texture = (TextureView*) g_theRenderer->CreateOrGetTextureViewFromFile( PLANET_TEXTURE_PATH, true );
-	m_planet_sheet = new SpriteSheet( planet_texture, IntVec2( 5,5 ) );
+	m_planet_sheet = new SpriteSheet( planet_texture, IntVec2( 6,3 ) );
 	
 	m_cycle_timer = new StopWatch( g_theApp->GetGameClock() );
 	m_cycle_timer->SetAndReset( 1.0f );
 
 	Planet root_planet;
 	root_planet.m_pos = Vec2( 18.0f, -5.0f );
-	root_planet.sheet_idx = 7;
+	root_planet.sheet_idx = g_theRNG->GetRandomIntInRange(0, 11);
 	m_planets.push_back( root_planet );
 
 	for( int planet_count = 1; planet_count < NUM_PLANETS; ++planet_count )
@@ -120,13 +128,13 @@ void Game::Startup()
 		Planet planet;
 		planet.population = 0;
 		planet.m_pos = Vec2(g_theRNG->GetRandomFloatInRange( -GAME_HALF_WIDTH, GAME_HALF_WIDTH ), g_theRNG->GetRandomFloatInRange( -GAME_HALF_HEIGHT, GAME_HALF_HEIGHT ));
-		planet.sheet_idx = 7;
+		planet.sheet_idx = g_theRNG->GetRandomIntInRange(0, 11);
 		m_planets.push_back( planet );
 	}
 
 	Sun root_sun;
 	root_sun.m_pos = Vec2(-15.0f, 7.0f);
-	root_sun.sheet_idx = 23;
+	root_sun.sheet_idx = g_theRNG->GetRandomIntInRange(12, 16);
 	m_suns.push_back(root_sun);
 
 	for( int sun_count = 1; sun_count < NUM_SUNS; ++sun_count )
@@ -134,7 +142,7 @@ void Game::Startup()
 		Sun sun;
 		sun.m_pos = Vec2(g_theRNG->GetRandomFloatInRange(-GAME_HALF_WIDTH, GAME_HALF_WIDTH), g_theRNG->GetRandomFloatInRange(-GAME_HALF_HEIGHT, GAME_HALF_HEIGHT));
 		sun.influence_radius = 25.0f;
-		sun.sheet_idx  = 23;
+		sun.sheet_idx  = g_theRNG->GetRandomIntInRange(12, 16);
 		m_suns.push_back( sun );
 	}
 
@@ -184,6 +192,7 @@ void Game::GameRender() const
 
 	RenterTradeRoutes();
 	RenderPlanets();
+	RenderSelectedRoute();
 
 	g_theDebugRenderSystem->RenderToCamera( &m_controller.m_camera );
 
@@ -202,6 +211,11 @@ void Game::UpdateGame( float deltaSeconds )
 {
 	m_controller.Update( deltaSeconds );
 	
+	if( g_theInputSystem->KeyWasPressed( MOUSE_L ) )
+	{
+		m_selected_route	= nullptr;
+	}
+
 	UpdateUI();
 
 	m_total_population = 0;
@@ -216,11 +230,19 @@ void Game::UpdateGame( float deltaSeconds )
 		sun.Update( deltaSeconds );
 	}
 
+	for( TradeRoute& tr : m_trade_routes )
+	{
+		tr.Update();
+	}
+
+	UpdateSelectedRoute();
+
 	if( m_cycle_timer->HasElapsed() )
 	{
 		UpdateCycle();
 		m_cycle_timer->Reset();
 	}
+
 
 	m_totpop_label->m_text = Stringf( "Population: %u", m_total_population );
 	m_cycles_label->m_text = Stringf( "Cycles: %u", m_num_cycles );
@@ -347,11 +369,11 @@ void Game::RenderBackground() const
 	AddVertsForAABB2D( verts, rightBrd, Rgba::WHITE );
 	AddVertsForAABB2D( verts, botRightBrd, Rgba::WHITE );
 
-	static TextureView* background_texture = (TextureView*)g_theRenderer->CreateOrGetTextureViewFromFile(BACKGROUND_TEXTURE_PATH, true);
+	static TextureView* background_texture = (TextureView*)g_theRenderer->CreateOrGetTextureViewFromFile( BACKGROUND_TEXTURE_PATH, true );
 
-	g_theRenderer->BindShader(m_shader);
+	g_theRenderer->BindShader( m_shader );
 	g_theRenderer->BindTextureViewWithSampler(eTextureSlot::TEXTURE_SLOT_ALBEDO, background_texture, eSampleMode::SAMPLE_MODE_POINT);
-	g_theRenderer->DrawVertexArray(verts);
+	g_theRenderer->DrawVertexArray( verts );
 }
 
 //--------------------------------------------------------------------------
@@ -402,9 +424,19 @@ void Game::RenterTradeRoutes() const
 
 	if( !verts.empty() )
 	{
-		g_theRenderer->BindTextureView( TEXTURE_SLOT_ALBEDO, ROUTE_TEXTURE_PATH );
+		TextureView* view = (TextureView*) g_theRenderer->CreateOrGetTextureViewFromFile( ROUTE_TEXTURE_PATH, true );
+		g_theRenderer->BindTextureView( TEXTURE_SLOT_ALBEDO, view );
 		g_theRenderer->DrawVertexArray( verts );
 	}
+}
+
+//--------------------------------------------------------------------------
+/**
+* RenderSelectedRoute
+*/
+void Game::RenderSelectedRoute() const
+{
+
 }
 
 //--------------------------------------------------------------------------
@@ -451,7 +483,76 @@ void Game::UpdateCycleWithSun( Sun& sun )
 */
 void Game::UpdateCycleWithTradeRoute( TradeRoute& trade_route )
 {
+	if( trade_route.IsMeetingRequirements() )
+	{
+		AttempTrade( trade_route.startInfo, *trade_route.starting_route, *trade_route.ending_route );
+		AttempTrade( trade_route.endInfo, *trade_route.ending_route, *trade_route.starting_route );
+	}
+}
 
+//--------------------------------------------------------------------------
+/**
+* AttempTrade
+*/
+void Game::AttempTrade( TradeInfo& trade_into, Planet& from, Planet to )
+{
+	if( from.population > BASE_POP_NEEDED_TO_TRADE )
+	{
+		for( int count = 0; count < trade_into.sending_supplies; ++count )
+		{
+			if( from.supplies > AMOUNT_SENT_ON_TRADE )
+			{
+				from.supplies	-= AMOUNT_SENT_ON_TRADE;
+				to.supplies		+= AMOUNT_SENT_ON_TRADE;
+			}
+		}
+
+		for( int count = 0; count < trade_into.sending_bio; ++count )
+		{
+			if( from.biomatter > AMOUNT_SENT_ON_TRADE )
+			{
+				from.biomatter -= AMOUNT_SENT_ON_TRADE;
+				to.biomatter += AMOUNT_SENT_ON_TRADE;
+			}
+		}
+
+		for( int count = 0; count < trade_into.sending_oxygen; ++count )
+		{
+			if( from.oxygen > AMOUNT_SENT_ON_TRADE )
+			{
+				from.oxygen -= AMOUNT_SENT_ON_TRADE;
+				to.oxygen += AMOUNT_SENT_ON_TRADE;
+			}
+		}
+
+		for( int count = 0; count < trade_into.sending_energy; ++count )
+		{
+			if( from.energy > AMOUNT_SENT_ON_TRADE )
+			{
+				from.energy -= AMOUNT_SENT_ON_TRADE;
+				to.energy += AMOUNT_SENT_ON_TRADE;
+			}
+		}
+
+		from.population -= POPULATION_SEND_ON_TRADE;
+		to.population	+= POPULATION_SEND_ON_TRADE;
+
+		from.technology += TECH_GAINED_ON_TRADE;
+		from.technology += TECH_GAINED_ON_TRADE;
+	}
+}
+
+//--------------------------------------------------------------------------
+/**
+* UpdateSelectedRoute
+*/
+void Game::UpdateSelectedRoute()
+{
+	if( m_selected_route )
+	{
+		m_selected_route->starting_route->m_hover = true;
+		m_selected_route->ending_route->m_hover = true;
+	}
 }
 
 //--------------------------------------------------------------------------
@@ -460,9 +561,19 @@ void Game::UpdateCycleWithTradeRoute( TradeRoute& trade_route )
 */
 void Game::CreateTradeRoutesFor( Planet& planet )
 {
+	std::vector<Planet*> found_planets;
 	for( int tr_count = 0; tr_count < NUM_TRADEROUTES_PER_PLANET; ++tr_count )
 	{
-		//Planet
+		Planet* closestPlanet = GetClosestPlanetNotConnected( planet );
+		if( !closestPlanet )
+		{
+			closestPlanet = GetClosestPlanetExcludingDuplicates( planet );
+		}
+		
+		if( closestPlanet )
+		{
+			CreateTradeConnection( &planet, closestPlanet );
+		}
 	}
 }
 
@@ -470,7 +581,85 @@ void Game::CreateTradeRoutesFor( Planet& planet )
 /**
 * GetCLosestPlanetExcluding
 */
-Planet* Game::GetCLosestPlanetExcluding( std::vector<Planet*> planets )
+Planet* Game::GetClosestPlanetExcludingDuplicates( Planet& ref_planet )
 {
-	return nullptr;
+	Planet* best_planet = nullptr;
+	float best_dist_sqrd = INFINITY;
+	for( Planet& planet : m_planets )
+	{
+		if( &planet == &ref_planet )
+		{
+			continue;
+		}
+
+		for (TradeRoute& tr : m_trade_routes)
+		{
+			if ( &planet == tr.starting_route && &ref_planet == tr.ending_route
+				|| &ref_planet == tr.starting_route && &planet == tr.ending_route)
+			{
+				goto next;
+			}
+		}
+
+		{
+			Vec2 disp_here_to_planet = planet.m_pos - ref_planet.m_pos;
+			float dist_sqrd = disp_here_to_planet.GetLengthSquared();
+			if( dist_sqrd < best_dist_sqrd )
+			{
+				best_dist_sqrd = dist_sqrd;
+				best_planet = &planet;
+			}
+		}
+	next:;
+	}
+	return best_planet;
+}
+
+//--------------------------------------------------------------------------
+/**
+* GetClosestPlanetNotConnected
+*/
+Planet* Game::GetClosestPlanetNotConnected( Planet& ref_planet )
+{
+	Planet* best_planet = nullptr;
+	float best_dist_sqrd = INFINITY;
+	for( Planet& planet : m_planets )
+	{
+		if( &ref_planet == &planet )
+		{
+			continue;
+		}
+
+		for( TradeRoute& tr : m_trade_routes )
+		{
+			if( &planet == tr.starting_route || &planet == tr.ending_route )
+			{
+				goto next;
+			}
+		}
+
+		{
+			Vec2 disp_here_to_planet = planet.m_pos - ref_planet.m_pos;
+			float dist_sqrd = disp_here_to_planet.GetLengthSquared();
+			if (dist_sqrd < best_dist_sqrd)
+			{
+				best_dist_sqrd = dist_sqrd;
+				best_planet = &planet;
+			}
+		}
+	next:;
+	}
+	return best_planet;
+}
+
+//--------------------------------------------------------------------------
+/**
+* CreateTradeConnection
+*/
+void Game::CreateTradeConnection( Planet* a, Planet* b )
+{
+	TradeRoute tr;
+	tr.starting_route = a;
+	tr.ending_route = b;
+	m_trade_routes.push_back(tr);
 }

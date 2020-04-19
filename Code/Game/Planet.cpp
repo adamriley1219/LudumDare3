@@ -404,7 +404,6 @@ void Sun::AddVertsForInfoText( std::vector<Vertex_PCU>& verts ) const
 	box.AddPosition(0.0f, -box.GetHeight());
 	box.m_bottomLeft.y -= 500.0f;
 
-
 	BitmapFont* font = g_theRenderer->CreateOrGetBitmapFromFile(FONT);
 	font->AddVertsFor2DTextAlignedInBox(verts, cell_height, m_name.c_str(), box.CarveBoxOffTop(0.0f, cell_height), Vec2::ALIGN_CENTERED);
 

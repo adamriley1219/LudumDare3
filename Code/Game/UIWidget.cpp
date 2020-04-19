@@ -237,7 +237,7 @@ void UILabel::Render() const
 	BitmapFont* font = g_theRenderer->CreateOrGetBitmapFromFile( m_font.c_str() );
 	if( font )
 	{
-		font->AddVertsFor2DTextAlignedInBox( verts, m_worldBounds.GetHeight(), m_text.c_str(), m_worldBounds, m_pivot, BITMAP_MODE_SHRINK_TO_FIT, .75f, m_color );
+		font->AddVertsFor2DTextAlignedInBox( verts, m_worldBounds.GetHeight(), m_text.c_str(), m_worldBounds, m_pivot, BITMAP_MODE_SHRINK_TO_FIT, .55f, m_color );
 		g_theRenderer->BindTextureViewWithSampler( TEXTURE_SLOT_ALBEDO, font->GetTextureView() );
 		g_theRenderer->DrawVertexArray(	verts );
 	}
