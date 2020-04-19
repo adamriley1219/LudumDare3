@@ -1,15 +1,17 @@
 #pragma once
 #include "Game/GameCommon.hpp"
 
+#include "Engine/Core/Time/StopWatch.hpp"
 
 #include "Game/SpaceCamera.hpp"
 #include "Game/GameController.hpp"
 #include "Game/UIWidget.hpp"
 
 class Shader;
-class InhabitablePlanet;
+class Planet;
 class Sun;
 class SpriteSheet;
+class TradeRoute;
 
 class Game
 {
@@ -33,6 +35,15 @@ private:
 	void UpdateUI();
 	void RenderBackground() const;
 	void RenderPlanets() const;
+	void RenterTradeRoutes() const;
+
+	void UpdateCycle();
+	void UpdateCycleWithSun( Sun& sun );
+	void UpdateCycleWithTradeRoute( TradeRoute& trade_route );
+
+	void CreateTradeRoutesFor( Planet& planet );
+	Planet* GetCLosestPlanetExcluding( std::vector<Planet*> planets );
+
 
 public:
 	bool m_isQuitting = false;
@@ -46,8 +57,16 @@ public:
 
 	UICanvas m_UICanvas;
 
-	InhabitablePlanet*	m_root_planet	= nullptr;
-	Sun*				m_root_sun		= nullptr;
+	std::vector<Planet>	m_planets;
+	std::vector<TradeRoute>			m_trade_routes;
+	std::vector<Sun>				m_suns;
+
+	StopWatch* m_cycle_timer	= nullptr;
+	UILabel* m_cycles_label		= nullptr;
+	int m_num_cycles			= 0;
+	
+	UILabel* m_totpop_label		= nullptr;
+	int m_total_population		= 0;
 
 	float m_slider = 50.f;
 

@@ -5,6 +5,7 @@
 #include <vector>
 
 class SpriteSheet;
+class Sun;
 
 class CelesticalObject
 {
@@ -25,35 +26,33 @@ public:
 
 public:
 	int sheet_idx				= 0;
-	SpriteSheet* m_planet_sheet = nullptr;
-
 };
 
-class InhabitablePlanet : public CelesticalObject
+class Planet : public CelesticalObject
 {
 public:
-	InhabitablePlanet();
-	virtual ~InhabitablePlanet();
+	Planet();
+	virtual ~Planet();
 
 	virtual void Update( float deltaTime );
 	virtual void AddVertsForRender( std::vector<Vertex_PCU>& verts ) const;
 	virtual void AddVertsForInfoText( std::vector<Vertex_PCU>& verts ) const;
-	 
+
+	void UpdateFromSun( Sun& sun );
+	void UpdateForCycle();
+
 public:
-	int GetTotalPopulation() const; 
+	int GetPopulation() const; 
 	
 public:
 	int energy			= 0;
 	int technology		= 0;
 
-	int polulation		= 50;
+	int population		= 50;
 
 	int supplies		= 50'000;
 	int biomatter		= 20'000;
 	int oxygen			= 100'000'000;
-
-public:
-	InhabitablePlanet* m_children[NUM_ALLOWED_CHILDREN] = { nullptr };
 
 };
 
@@ -66,9 +65,8 @@ public:
 	virtual void AddVertsForInfoText( std::vector<Vertex_PCU>& verts ) const;
 
 public:
-
-	int energy				= 50'000'000;
-	float influence_radius	= 10;
-	int release_rate		= 100;
+	int		energy				= 50'000'000;
+	float	influence_radius	= 10.0f;
+	int		release_rate		= 100;
 
 };

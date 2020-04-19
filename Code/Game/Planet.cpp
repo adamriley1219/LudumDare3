@@ -1,4 +1,4 @@
-#include "Game/InhabitablePlanet.hpp"
+#include "Game/Planet.hpp"
 #include "Engine/Core/EngineCommon.hpp"
 
 #include "Engine/Math/RNG.hpp"
@@ -10,7 +10,7 @@
 #include "Game/Game.hpp"
 #include "Engine/Renderer/SpriteSheet.hpp"
 
-constexpr const int num_names = 50;
+constexpr const int num_names = 120;
 constexpr const char* names[num_names] = 
 { 
 	"Ginroria  ",
@@ -62,7 +62,77 @@ constexpr const char* names[num_names] =
 	"Lomebos   ",
 	"Birenides ",
 	"Crolla 64 ",
-	"Siea 3819 "
+	"Siea 3819 ",
+	"Kozanope  ",
+	"Vulmaohiri",
+	"Dudriuq	",
+	"Abbeshan   ",
+	"Muinus		",
+	"Rigawa		",
+	"Bedicarro  ",
+	"Drieclite  ",
+	"Cora 4L18  ",
+	"Neon 9SMY  ",
+	"Uselea		",
+	"Olruevis   ",
+	"Munadus	",
+	"Hophore	",
+	"Reobos	    ",
+	"Ozuno	    ",
+	"Dokigawa   ",
+	"Golehines  ",
+	"Geron A23  ",
+	"Seshan X97 ",
+	"Salualara  ",
+	"Enzithea   ",
+	"Anzade	    ",
+	"Elvippe	",
+	"Eotune	    ",
+	"Zuitis	    ",
+	"Bromitis   ",
+	"Phaponides ",
+	"Treron C6Q ",
+	"Llion VTQD ",
+	"Rivanus	",
+	"Thinkeitune",
+	"Thozolla   ",
+	"Kepholla   ",
+	"Xionerth   ",
+	"Yilea		",
+	"Thirorilia ",
+	"Chuzenus   ",
+	"Pholla ZQDP",
+	"Zoth WR2   ",
+	"Rivanus	",
+	"Thinkeitune",
+	"Thozolla   ",
+	"Kepholla   ",
+	"Xionerth   ",
+	"Yilea		",
+	"Thirorilia ",
+	"Chuzenus   ",
+	"Pholla ZQDP",
+	"Zoth WR2   ",
+	"Rivanus	",
+	"Thinkeitune",
+	"Thozolla   ",
+	"Kepholla   ",
+	"Xionerth   ",
+	"Yilea		",
+	"Thirorilia ",
+	"Chuzenus   ",
+	"Pholla ZQDP",
+	"Zoth WR2   ",
+	"Lesoruta   ",
+	"Maphounia  ",
+	"Ocrolla	",
+	"Gacconoe   ",
+	"Homia		",
+	"Nayama		",
+	"Gnayinus   ",
+	"Cineria	",
+	"Ceshan 34H ",
+	"Thippe PK5 ",
 };
 // constexpr int num_vowels = 5;
 // constexpr int num_consonants = 21;
@@ -95,7 +165,7 @@ constexpr const char* names[num_names] =
 std::string GetRandomizedName()
 {
 	std::string to_ret = "";
-	int pattern_idx = g_theRNG->GetRandomIntInRange( 0, num_names );
+	int pattern_idx = g_theRNG->GetRandomIntInRange( 0, num_names - 1 );
 	return names[pattern_idx];
 }
 
@@ -105,7 +175,7 @@ std::string GetRandomizedName()
 /**
 * Planet
 */
-InhabitablePlanet::InhabitablePlanet()
+Planet::Planet()
 	: CelesticalObject()
 {
 
@@ -115,7 +185,7 @@ InhabitablePlanet::InhabitablePlanet()
 /**
 * ~Planet
 */
-InhabitablePlanet::~InhabitablePlanet()
+Planet::~Planet()
 {
 
 }
@@ -124,17 +194,9 @@ InhabitablePlanet::~InhabitablePlanet()
 /**
 * Update
 */
-void InhabitablePlanet::Update( float deltaTime )
+void Planet::Update( float deltaTime )
 {
-	CelesticalObject::Update( deltaTime );
-	for( int i = 0; i < NUM_ALLOWED_CHILDREN; ++i )
-	{
-		if( m_children[i] )
-		{
-			m_children[i]->Update( deltaTime );
-		}
-	}
-	
+	CelesticalObject::Update( deltaTime );	
 }
 
 
@@ -142,23 +204,16 @@ void InhabitablePlanet::Update( float deltaTime )
 /**
 * Render
 */
-void InhabitablePlanet::AddVertsForRender( std::vector<Vertex_PCU>& verts ) const
+void Planet::AddVertsForRender( std::vector<Vertex_PCU>& verts ) const
 {
 	CelesticalObject::AddVertsForRender( verts );
-	for( int i = 0; i < NUM_ALLOWED_CHILDREN; ++i )
-	{
-		if( m_children[i] )
-		{
-			m_children[i]->AddVertsForRender( verts );
-		}
-	}
 }
 
 //--------------------------------------------------------------------------
 /**
 * AddVertsForInfoText
 */
-void InhabitablePlanet::AddVertsForInfoText(std::vector<Vertex_PCU>& verts) const
+void Planet::AddVertsForInfoText(std::vector<Vertex_PCU>& verts) const
 {
 	float zoom = g_theGame->m_controller.m_camera.m_zoom;
 	float cell_height = 1.0f * zoom;
@@ -182,7 +237,7 @@ void InhabitablePlanet::AddVertsForInfoText(std::vector<Vertex_PCU>& verts) cons
 		AABB2 left_side = box.CarveBoxOffLeft( 0.5f );
 		AABB2& right_side = box;
 		font->AddVertsFor2DTextAlignedInBox( verts, cell_height, Stringf( "Population:" ).c_str()		, left_side.CarveBoxOffTop(0.0f, cell_height), Vec2::ALIGN_TOP_LEFT );
-		font->AddVertsFor2DTextAlignedInBox( verts, cell_height, Stringf( "%u", polulation ).c_str()	, right_side.CarveBoxOffTop(0.0f, cell_height), Vec2::ALIGN_TOP_RIGHT );
+		font->AddVertsFor2DTextAlignedInBox( verts, cell_height, Stringf( "%u", population ).c_str()	, right_side.CarveBoxOffTop(0.0f, cell_height), Vec2::ALIGN_TOP_RIGHT );
 		font->AddVertsFor2DTextAlignedInBox( verts, cell_height, Stringf( "Energy:" ).c_str()			, left_side.CarveBoxOffTop(0.0f, cell_height), Vec2::ALIGN_TOP_LEFT );
 		font->AddVertsFor2DTextAlignedInBox( verts, cell_height, Stringf( "%u", energy ).c_str()		, right_side.CarveBoxOffTop(0.0f, cell_height), Vec2::ALIGN_TOP_RIGHT );
 		font->AddVertsFor2DTextAlignedInBox( verts, cell_height, Stringf( "Technology:" ).c_str()		, left_side.CarveBoxOffTop(0.0f, cell_height), Vec2::ALIGN_TOP_LEFT );
@@ -199,18 +254,78 @@ void InhabitablePlanet::AddVertsForInfoText(std::vector<Vertex_PCU>& verts) cons
 
 //--------------------------------------------------------------------------
 /**
+* UpdateFromSun
+*/
+void Planet::UpdateFromSun( Sun& sun )
+{
+	Vec2 sun_to_planet = m_pos - sun.m_pos;
+	float dist_squr = sun_to_planet.GetLengthSquared();
+	if( dist_squr > ( sun.influence_radius * sun.influence_radius + m_radius ) )
+	{
+		energy += sun.release_rate;
+	}
+}
+
+//--------------------------------------------------------------------------
+/**
+* UpdateForCycle
+*/
+void Planet::UpdateForCycle()
+{
+	if( supplies > SUPPLIES_NEEDED_FOR_POPULATION_INC && population > 1 )
+	{
+		supplies -= SUPPLIES_NEEDED_FOR_POPULATION_INC;
+		population += POPULATION_INC;
+	}
+
+	if( biomatter > BIOMAT_NEEDED_FOR_SUPPLIES_INC )
+	{
+		biomatter -= BIOMAT_NEEDED_FOR_SUPPLIES_INC;
+		supplies += SUPPLIES_INC;
+	}
+
+	if( supplies > SUP_NEEDED_FOR_BIO && energy > ENERGY_NEEDED_FOR_BIO )
+	{
+		supplies	-= SUP_NEEDED_FOR_BIO;
+		energy		-= ENERGY_NEEDED_FOR_BIO;
+		biomatter	+= BIO_INC;
+	}
+
+	if( energy > ENERGY_NEEDED_FOR_TECH )
+	{
+		energy -= ENERGY_NEEDED_FOR_TECH;
+		technology += TECH_INC;
+	}
+
+	oxygen += BIOMAT_INFLUENCE_ON_OXYGEN * biomatter;
+	oxygen -= TECH_INFLUENCE_ON_OXYGEN * technology;
+
+	if( oxygen < population * 0.5f )
+	{
+		population /= 2;
+	}
+
+	population -= 1;
+	
+	if( population < 0 )
+		population = 0;
+	if( energy < 0 )
+		energy = 0;
+	if( supplies < 0 )
+		supplies = 0;
+	if( biomatter < 0 )
+		biomatter = 0;
+	if( oxygen < 0 )
+		oxygen = 0;
+}
+
+//--------------------------------------------------------------------------
+/**
 * GetTotalPopulation
 */
-int InhabitablePlanet::GetTotalPopulation() const
+int Planet::GetPopulation() const
 {
-	int pop = polulation;
-	for( int i = 0; i < NUM_ALLOWED_CHILDREN; ++i )
-	{
-		if( m_children[i] )
-		{
-			pop += m_children[i]->GetTotalPopulation();
-		}
-	}
+	int pop = population;
 	return pop;
 }
 
@@ -230,11 +345,17 @@ CelesticalObject::CelesticalObject()
 void CelesticalObject::Update( float deltaTime )
 {
 	UNUSED(deltaTime);
-	Vec2 mouse_pos = g_theGame->m_controller.GetGameMousePos();
+	
+	const Vec2& screen_offset = g_theGame->m_controller.m_camera.m_screen_offset;
+	AABB2 screen = g_theGame->m_controller.m_camera.m_screen_boarder;
+	screen.ScaleUniform( g_theGame->m_controller.m_camera.m_zoom );
+	Vec2 position_in_player_space = m_pos - screen_offset;
+	bool ctrl_override = g_theInputSystem->IsCtrlPressed() && IsPointInAABB2( position_in_player_space, screen );
 
+	Vec2 mouse_pos = g_theGame->m_controller.GetGameMousePos();
 	Vec2 disp_pos_to_mouse = mouse_pos - m_pos;
 	float dist_sqrd = disp_pos_to_mouse.GetLengthSquared();
-	m_hover = dist_sqrd < ( m_radius * m_radius );
+	m_hover = dist_sqrd < ( m_radius * m_radius ) || ctrl_override;
 }
 
 //--------------------------------------------------------------------------

@@ -44,6 +44,8 @@ void SpaceCamera::Update( float deltaSeconds )
 void SpaceCamera::SetOffset( Vec2 const &pos )
 {
 	m_screen_offset = pos;
+	Vec2 world_half_dims( GAME_HALF_WIDTH, GAME_HALF_HEIGHT );
+	m_screen_offset = Clamp( m_screen_offset, world_half_dims * -1.0f, world_half_dims );
 }
 
 //--------------------------------------------------------------------------
@@ -54,6 +56,8 @@ void SpaceCamera::AddToOffset( Vec2 const& offset )
 {
 	float dependent_zoom_var = m_zoom * 1.0f;
 	m_screen_offset += offset * dependent_zoom_var;
+	Vec2 world_half_dims( GAME_HALF_WIDTH, GAME_HALF_HEIGHT );
+	m_screen_offset = Clamp( m_screen_offset, world_half_dims * -1.0f, world_half_dims );
 }
 
 //--------------------------------------------------------------------------

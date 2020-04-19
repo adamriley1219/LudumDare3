@@ -195,8 +195,9 @@
     <ClCompile Include="GameController.cpp" />
     <ClCompile Include="GameUtils.cpp" />
     <ClCompile Include="Main_Windows.cpp" />
-    <ClCompile Include="InhabitablePlanet.cpp" />
+    <ClCompile Include="Planet.cpp" />
     <ClCompile Include="SpaceCamera.cpp" />
+    <ClCompile Include="TradeRoute.cpp" />
     <ClCompile Include="UIWidget.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -207,8 +208,9 @@
     <ClInclude Include="GameCommon.hpp" />
     <ClInclude Include="GameController.hpp" />
     <ClInclude Include="GameUtils.hpp" />
-    <ClInclude Include="InhabitablePlanet.hpp" />
+    <ClInclude Include="Planet.hpp" />
     <ClInclude Include="SpaceCamera.hpp" />
+    <ClInclude Include="TradeRoute.hpp" />
     <ClInclude Include="UIWidget.hpp" />
   </ItemGroup>
   <ItemGroup>
