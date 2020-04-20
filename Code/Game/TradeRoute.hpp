@@ -1,4 +1,5 @@
 #pragma once
+#include "Engine/Math/AABB2.hpp"
 
 #include <vector>
 
@@ -20,37 +21,18 @@ public:
 	~TradeRoute();
 
 	void Update();
-	void UpdateCycle();
+	void UpdateForSelection();
 	void AddForRender( std::vector<Vertex_PCU>& verts ) const;
 
 	int GetCombinedTech() const;
 	bool IsMeetingRequirements() const;
 
-	void IncrementStartSup();
-	void IncrementStartBio();
-	void IncrementStartOxygen();
-	void IncrementStartEnergy();
-
-	void DecrementStartSup();
-	void DecrementStartBio();
-	void DecrementStartOxygen();
-	void DecrementStartEnergy();
-
-	void IncrementendSup();
-	void IncrementendBio();
-	void IncrementendOxygen();
-	void IncrementendEnergy();
-				  
-	void DecrementendSup();
-	void DecrementendBio();
-	void DecrementendOxygen();
-	void DecrementendEnergy();
-
 public:
-	Planet* starting_route			= nullptr;
-	Planet* ending_route			= nullptr;
+	Planet* a_route					= nullptr;
+	Planet* b_route					= nullptr;
 	bool	hovering				= false;
 
-	TradeInfo startInfo;
-	TradeInfo endInfo;
+	TradeInfo a_Info;
+	TradeInfo b_Info;
+
 };

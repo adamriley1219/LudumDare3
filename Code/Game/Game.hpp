@@ -43,7 +43,7 @@ private:
 	void UpdateCycle();
 	void UpdateCycleWithSun( Sun& sun );
 	void UpdateCycleWithTradeRoute( TradeRoute& trade_route );
-	void AttempTrade( TradeInfo& trade_info, Planet& from, Planet to );
+	void AttempTrade( TradeInfo& trade_info, Planet& from, Planet& to );
 	void UpdateSelectedRoute();
 
 	void CreateTradeRoutesFor( Planet& planet );

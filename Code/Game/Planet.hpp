@@ -43,6 +43,7 @@ public:
 
 public:
 	int GetPopulation() const; 
+	void CheckForNonZeroValues();
 	
 public:
 	int energy			= 0;

@@ -32,7 +32,7 @@ public:
 	float m_zoom					= 1.0f;
 
 	// configuration - mess with these numbers to get a view you like; 
-	float m_minZoomIn					= .1f;
+	float m_minZoomIn					= .45f;
 	float m_maxZoomOut					= 4.0f;
 
 

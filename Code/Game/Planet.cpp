@@ -291,12 +291,6 @@ void Planet::UpdateForCycle()
 		biomatter	+= BIO_INC;
 	}
 
-	if( energy > ENERGY_NEEDED_FOR_TECH )
-	{
-		energy -= ENERGY_NEEDED_FOR_TECH;
-		technology += TECH_INC;
-	}
-
 	oxygen += BIOMAT_INFLUENCE_ON_OXYGEN * biomatter;
 	oxygen -= TECH_INFLUENCE_ON_OXYGEN * technology;
 
@@ -307,16 +301,7 @@ void Planet::UpdateForCycle()
 
 	population -= 1;
 	
-	if( population < 0 )
-		population = 0;
-	if( energy < 0 )
-		energy = 0;
-	if( supplies < 0 )
-		supplies = 0;
-	if( biomatter < 0 )
-		biomatter = 0;
-	if( oxygen < 0 )
-		oxygen = 0;
+	CheckForNonZeroValues();
 }
 
 //--------------------------------------------------------------------------
@@ -327,6 +312,26 @@ int Planet::GetPopulation() const
 {
 	int pop = population;
 	return pop;
+}
+
+//--------------------------------------------------------------------------
+/**
+* CheckForNonZeroValues
+*/
+void Planet::CheckForNonZeroValues()
+{
+	if( energy < 0 )
+		energy = 0;
+	if (technology < 0)
+		technology = 0;
+	if (population < 0)
+		population = 0;
+	if (supplies < 0)
+		supplies = 0;
+	if (biomatter < 0)
+		biomatter = 0;
+	if (oxygen < 0)
+		oxygen = 0;
 }
 
 //--------------------------------------------------------------------------

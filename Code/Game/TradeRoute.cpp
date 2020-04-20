@@ -7,6 +7,7 @@
 
 #include "Engine/Renderer/RenderContext.hpp"
 
+#include "Engine/ImGUI/ImGUISystem.hpp"
 
 //--------------------------------------------------------------------------
 /**
@@ -14,7 +15,7 @@
 */
 TradeRoute::TradeRoute()
 {
-
+	
 }
 
 //--------------------------------------------------------------------------
@@ -32,24 +33,43 @@ TradeRoute::~TradeRoute()
 */
 void TradeRoute::Update()
 {
-	Vec2 mouse_pos = g_theGame->m_controller.GetGameMousePos();
-
-	bool intersecting = DoesDiscOverlapLineSegment2D( mouse_pos, ROUTE_THICKNESS, starting_route->m_pos, ending_route->m_pos );
-	hovering = intersecting; 
-
-	if( intersecting && g_theInputSystem->KeyWasPressed( MOUSE_L ) )
+	if (!ImGui::IsAnyWindowHovered())
 	{
-		g_theGame->m_selected_route = this;
+		Vec2 mouse_pos = g_theGame->m_controller.GetGameMousePos();
+
+		bool intersecting = DoesDiscOverlapLineSegment2D(mouse_pos, ROUTE_THICKNESS, a_route->m_pos, b_route->m_pos);
+		hovering = intersecting;
+
+		if (intersecting && g_theInputSystem->KeyWasPressed(MOUSE_L))
+		{
+			g_theGame->m_selected_route = this;
+		}
 	}
 }
 
+
 //--------------------------------------------------------------------------
 /**
-* UpdateCycle
+* UpdateForSelection
 */
-void TradeRoute::UpdateCycle()
+void TradeRoute::UpdateForSelection()
 {
+	ImGui::Begin("Trade Route");
 
+	ImGui::Text(Stringf("Amount %s(a) is Sending:", a_route->m_name.c_str()).c_str());
+
+	ImGui::SliderInt( "a supplies", &a_Info.sending_supplies, 0, MAX_TRADE_AMOUNT );
+	ImGui::SliderInt( "a energy", &a_Info.sending_energy, 0, MAX_TRADE_AMOUNT );
+	ImGui::SliderInt( "a biomatter", &a_Info.sending_bio, 0, MAX_TRADE_AMOUNT );
+	ImGui::SliderInt( "a oxygen", &a_Info.sending_oxygen, 0, MAX_TRADE_AMOUNT );
+	
+	ImGui::Text(Stringf("Amount %s(b) is Sending:", b_route->m_name.c_str()).c_str());
+	ImGui::SliderInt("b supplies", &b_Info.sending_supplies, 0, MAX_TRADE_AMOUNT);
+	ImGui::SliderInt("b energy", &b_Info.sending_energy, 0, MAX_TRADE_AMOUNT);
+	ImGui::SliderInt("b biomatter", &b_Info.sending_bio, 0, MAX_TRADE_AMOUNT);
+	ImGui::SliderInt("b oxygen", &b_Info.sending_oxygen, 0, MAX_TRADE_AMOUNT);
+
+	ImGui::End();
 }
 
 //--------------------------------------------------------------------------
@@ -58,12 +78,12 @@ void TradeRoute::UpdateCycle()
 */
 void TradeRoute::AddForRender( std::vector<Vertex_PCU>& verts ) const
 {
-	if( !starting_route || !ending_route )
+	if( !a_route || !b_route )
 	{
 		return;
 	}
 
-	bool isNotMeetingTradeRequirments = IsMeetingRequirements();
+	bool isNotMeetingTradeRequirments = !IsMeetingRequirements();
 	
 	Rgba color = Rgba::WHITE;
 
@@ -72,20 +92,23 @@ void TradeRoute::AddForRender( std::vector<Vertex_PCU>& verts ) const
 		color = Rgba::BLUE;
 	}
 
+	if( isNotMeetingTradeRequirments )
+	{
+		color = Rgba::RED;
+	}
+	else if( a_route->population < BASE_POP_NEEDED_TO_TRADE || b_route->population < BASE_POP_NEEDED_TO_TRADE )
+	{
+		color = Rgba( 1.0f, 0.8f, 0.5f );
+	}
+
 	if( g_theGame->m_selected_route == this )
 	{
 		color = Rgba::YELLOW;
 	}
 
-	if( isNotMeetingTradeRequirments )
-	{
-		color.r *= 0.8f;
-		color.g *= 0.8f;
-		color.b *= 0.8f;
-	}
-
-	AddVertsForLine2D( verts, starting_route->m_pos, ending_route->m_pos, ROUTE_THICKNESS, color );
+	AddVertsForLine2D( verts, a_route->m_pos, b_route->m_pos, ROUTE_THICKNESS, color );
 }
+
 
 //--------------------------------------------------------------------------
 /**
@@ -95,8 +118,8 @@ int TradeRoute::GetCombinedTech() const
 {
 	int ret = 0;
 
-	ret += starting_route->technology;
-	ret += ending_route->technology;
+	ret += a_route->technology;
+	ret += b_route->technology;
 
 	return ret;
 }
@@ -108,23 +131,23 @@ int TradeRoute::GetCombinedTech() const
 bool TradeRoute::IsMeetingRequirements() const
 {
 	int total_req_start =
-		startInfo.sending_supplies
-	+	startInfo.sending_bio 
-	+	startInfo.sending_oxygen
-	+	startInfo.sending_energy;
+		a_Info.sending_supplies
+	+	a_Info.sending_bio 
+	+	a_Info.sending_oxygen
+	+	a_Info.sending_energy;
 
-	if( total_req_start * POPULATION_SEND_ON_TRADE < starting_route->population )
+	if( total_req_start * POPULATION_SEND_ON_TRADE > a_route->population )
 	{
 		return false;
 	}
 
 	int total_req_end =
-			endInfo.sending_supplies
-		+	endInfo.sending_bio
-		+	endInfo.sending_oxygen
-		+	endInfo.sending_energy;
+			b_Info.sending_supplies
+		+	b_Info.sending_bio
+		+	b_Info.sending_oxygen
+		+	b_Info.sending_energy;
 
-	if( total_req_end * POPULATION_SEND_ON_TRADE < ending_route->population )
+	if( total_req_end * POPULATION_SEND_ON_TRADE > b_route->population )
 	{
 		return false;
 	}

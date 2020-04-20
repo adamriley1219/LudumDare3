@@ -87,14 +87,14 @@ void Game::Startup()
 	exit->UpdateBounds( exitBounds );
 
 	Rgba stats_color(1.0f, 0.7f, 0.1f);
-	float label_height = 2.5f;
+	float label_height = 5.0f;
 
 	m_cycles_label = m_UICanvas.CreateChild<UILabel>();
 	m_cycles_label->m_text = "Temp text";
 	m_cycles_label->m_color = stats_color;
 	m_cycles_label->m_pivot = Vec2::ALIGN_CENTER_LEFT;
 	m_cycles_label->m_virtualPosition = Vec4::ZERO;
-	m_cycles_label->m_virtualSize = Vec4( 0.0f, 1.0f, 50.0f, 0.0f );
+	m_cycles_label->m_virtualSize = Vec4( 0.0f, 1.0f, 25.0f, 0.0f );
 	m_cycles_label->UpdateBounds( statsBounds.CarveBoxOffTop( 0, label_height ) );
 
 	m_totpop_label = m_UICanvas.CreateChild<UILabel>();
@@ -102,14 +102,14 @@ void Game::Startup()
 	m_totpop_label->m_color = stats_color;
 	m_totpop_label->m_pivot = Vec2::ALIGN_CENTER_LEFT;
 	m_totpop_label->m_virtualPosition = Vec4::ZERO;
-	m_totpop_label->m_virtualSize = Vec4( 0.0f, 1.0f, 50.0f, 0.0f );
+	m_totpop_label->m_virtualSize = Vec4( 0.0f, 1.0f, 25.0f, 0.0f );
 	m_totpop_label->UpdateBounds( statsBounds.CarveBoxOffTop( 0, label_height ) );
 
 	UILabel* ctrl_label = m_UICanvas.CreateChild<UILabel>();
 	ctrl_label->m_text = "Hold CTRL to hover all";
 	ctrl_label->m_pivot = Vec2::ALIGN_CENTER_LEFT;
 	ctrl_label->m_virtualPosition = Vec4::ZERO;
-	ctrl_label->m_virtualSize = Vec4( 0.0f, 1.0f, 50.0f, 0.0f );
+	ctrl_label->m_virtualSize = Vec4( 0.0f, 1.0f, 25.0f, 0.0f );
 	ctrl_label->UpdateBounds( statsBounds.CarveBoxOffTop( 0, label_height ) );
 
 	TextureView* planet_texture = (TextureView*) g_theRenderer->CreateOrGetTextureViewFromFile( PLANET_TEXTURE_PATH, true );
@@ -120,6 +120,7 @@ void Game::Startup()
 
 	Planet root_planet;
 	root_planet.m_pos = Vec2( 18.0f, -5.0f );
+	root_planet.technology = 55;
 	root_planet.sheet_idx = g_theRNG->GetRandomIntInRange(0, 11);
 	m_planets.push_back( root_planet );
 
@@ -211,9 +212,12 @@ void Game::UpdateGame( float deltaSeconds )
 {
 	m_controller.Update( deltaSeconds );
 	
-	if( g_theInputSystem->KeyWasPressed( MOUSE_L ) )
+	if( !ImGui::IsAnyWindowHovered() )
 	{
-		m_selected_route	= nullptr;
+		if( g_theInputSystem->KeyWasPressed( MOUSE_L ) )
+		{
+			m_selected_route	= nullptr;
+		}
 	}
 
 	UpdateUI();
@@ -485,8 +489,8 @@ void Game::UpdateCycleWithTradeRoute( TradeRoute& trade_route )
 {
 	if( trade_route.IsMeetingRequirements() )
 	{
-		AttempTrade( trade_route.startInfo, *trade_route.starting_route, *trade_route.ending_route );
-		AttempTrade( trade_route.endInfo, *trade_route.ending_route, *trade_route.starting_route );
+		AttempTrade( trade_route.a_Info, *trade_route.a_route, *trade_route.b_route );
+		AttempTrade( trade_route.b_Info, *trade_route.b_route, *trade_route.a_route );
 	}
 }
 
@@ -494,16 +498,19 @@ void Game::UpdateCycleWithTradeRoute( TradeRoute& trade_route )
 /**
 * AttempTrade
 */
-void Game::AttempTrade( TradeInfo& trade_into, Planet& from, Planet to )
+void Game::AttempTrade( TradeInfo& trade_into, Planet& from, Planet& to )
 {
 	if( from.population > BASE_POP_NEEDED_TO_TRADE )
 	{
+		int pop_used = 0;
+
 		for( int count = 0; count < trade_into.sending_supplies; ++count )
 		{
 			if( from.supplies > AMOUNT_SENT_ON_TRADE )
 			{
 				from.supplies	-= AMOUNT_SENT_ON_TRADE;
 				to.supplies		+= AMOUNT_SENT_ON_TRADE;
+				++pop_used;
 			}
 		}
 
@@ -513,6 +520,7 @@ void Game::AttempTrade( TradeInfo& trade_into, Planet& from, Planet to )
 			{
 				from.biomatter -= AMOUNT_SENT_ON_TRADE;
 				to.biomatter += AMOUNT_SENT_ON_TRADE;
+				++pop_used;
 			}
 		}
 
@@ -522,6 +530,7 @@ void Game::AttempTrade( TradeInfo& trade_into, Planet& from, Planet to )
 			{
 				from.oxygen -= AMOUNT_SENT_ON_TRADE;
 				to.oxygen += AMOUNT_SENT_ON_TRADE;
+				++pop_used;
 			}
 		}
 
@@ -531,14 +540,29 @@ void Game::AttempTrade( TradeInfo& trade_into, Planet& from, Planet to )
 			{
 				from.energy -= AMOUNT_SENT_ON_TRADE;
 				to.energy += AMOUNT_SENT_ON_TRADE;
+				++pop_used;
 			}
 		}
 
-		from.population -= POPULATION_SEND_ON_TRADE;
-		to.population	+= POPULATION_SEND_ON_TRADE;
+		from.energy		-= AMOUNT_SENT_ON_TRADE;
+		from.population -= POPULATION_SEND_ON_TRADE * pop_used;
+		to.population	+= POPULATION_SEND_ON_TRADE * pop_used;
 
 		from.technology += TECH_GAINED_ON_TRADE;
 		from.technology += TECH_GAINED_ON_TRADE;
+
+		if( from.population < 0 )
+		{
+			from.population = 0;
+		}
+		from.CheckForNonZeroValues();
+	}
+	else
+	{
+		trade_into.sending_bio = 0;
+		trade_into.sending_energy = 0;
+		trade_into.sending_oxygen = 0;
+		trade_into.sending_supplies = 0;
 	}
 }
 
@@ -550,9 +574,11 @@ void Game::UpdateSelectedRoute()
 {
 	if( m_selected_route )
 	{
-		m_selected_route->starting_route->m_hover = true;
-		m_selected_route->ending_route->m_hover = true;
+		m_selected_route->a_route->m_hover = true;
+		m_selected_route->b_route->m_hover = true;
+		m_selected_route->UpdateForSelection();
 	}
+	
 }
 
 //--------------------------------------------------------------------------
@@ -594,8 +620,8 @@ Planet* Game::GetClosestPlanetExcludingDuplicates( Planet& ref_planet )
 
 		for (TradeRoute& tr : m_trade_routes)
 		{
-			if ( &planet == tr.starting_route && &ref_planet == tr.ending_route
-				|| &ref_planet == tr.starting_route && &planet == tr.ending_route)
+			if ( &planet == tr.a_route && &ref_planet == tr.b_route
+				|| &ref_planet == tr.a_route && &planet == tr.b_route)
 			{
 				goto next;
 			}
@@ -632,7 +658,7 @@ Planet* Game::GetClosestPlanetNotConnected( Planet& ref_planet )
 
 		for( TradeRoute& tr : m_trade_routes )
 		{
-			if( &planet == tr.starting_route || &planet == tr.ending_route )
+			if( &planet == tr.a_route || &planet == tr.b_route )
 			{
 				goto next;
 			}
@@ -659,7 +685,7 @@ Planet* Game::GetClosestPlanetNotConnected( Planet& ref_planet )
 void Game::CreateTradeConnection( Planet* a, Planet* b )
 {
 	TradeRoute tr;
-	tr.starting_route = a;
-	tr.ending_route = b;
+	tr.a_route = a;
+	tr.b_route = b;
 	m_trade_routes.push_back(tr);
 }

@@ -50,7 +50,7 @@ constexpr float BOARDER_HALF_HEIGHT = BOARDER_HEIGHT * 0.5f;
 extern AABB2 UI_SCREEN;//( Vec2(), Vec2(BOARDER_WIDTH, BOARDER_HEIGHT) );
 
 constexpr const char* PLANET_TEXTURE_PATH			= "Data/Images/planets_6x3.png";
-constexpr const char* BACKGROUND_TEXTURE_PATH		= "Data/Images/Stars.png";
+constexpr const char* BACKGROUND_TEXTURE_PATH		= "Data/Images/Stars_larger.png";
 constexpr const char* ROUTE_TEXTURE_PATH			= "Data/Images/Ray.png";
 
 constexpr const char* FONT							= "SquirrelFixedFont";
@@ -62,7 +62,7 @@ constexpr int NUM_TRADEROUTES_PER_PLANET			= 2;
 constexpr int NUM_PLANETS							= 50;
 constexpr int NUM_SUNS								= 15;
 
-
+// cycle numbers
 constexpr int SUPPLIES_NEEDED_FOR_POPULATION_INC	= 50;
 constexpr int POPULATION_INC						= 15;
 constexpr int BIOMAT_NEEDED_FOR_SUPPLIES_INC		= 10;
@@ -75,7 +75,7 @@ constexpr int TECH_INFLUENCE_ON_OXYGEN				= 2;
 constexpr int ENERGY_NEEDED_FOR_TECH				= 50;
 constexpr int TECH_INC								= 45;
 
-
+// trade numbers
 constexpr int TECH_NEEDED_TO_TRADE					= 50;
 constexpr int TECH_GAINED_ON_TRADE					= 5;
 constexpr int BASE_POP_NEEDED_TO_TRADE				= 25; // Only one planet needs to meet this
