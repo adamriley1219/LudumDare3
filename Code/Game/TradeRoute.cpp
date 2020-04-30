@@ -87,10 +87,7 @@ void TradeRoute::AddForRender( std::vector<Vertex_PCU>& verts ) const
 	
 	Rgba color = Rgba::WHITE;
 
-	if( hovering )
-	{
-		color = Rgba::BLUE;
-	}
+
 
 	if( isNotMeetingTradeRequirments )
 	{
@@ -101,7 +98,12 @@ void TradeRoute::AddForRender( std::vector<Vertex_PCU>& verts ) const
 		color = Rgba( 1.0f, 0.8f, 0.5f );
 	}
 
-	if( g_theGame->m_selected_route == this )
+	if (hovering)
+	{
+		color = Rgba::BLUE;
+	}
+
+	if (g_theGame->m_selected_route == this)
 	{
 		color = Rgba::YELLOW;
 	}
